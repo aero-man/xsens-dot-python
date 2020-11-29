@@ -66,7 +66,7 @@ def dump_services(dev):
                     break
 
 
-class ScanPrint(btle.DefaultDelegate):
+class ScannerDatabase(btle.DefaultDelegate):
 
     def __init__(self, opts):
         btle.DefaultDelegate.__init__(self)
@@ -99,17 +99,15 @@ class ScanPrint(btle.DefaultDelegate):
         for (sdid, desc, val) in dev.getScanData():
             if sdid in [8, 9]:
                 if dev.addr[:8] == "d4:ca:6e": # Is an Xsens DOT device
-                    self.xsens_db.add_device(dev.addr, val, None, dev.rssi)
+                    self.xsens_db.add_device(dev.addr, None, dev.rssi)
                 print ('\t' + desc + ': \'' + ANSI_CYAN + val + ANSI_OFF + '\'')
             else:
                 if dev.addr[:8] == "d4:ca:6e": # Is an Xsens DOT device
-                    self.xsens_db.add_device(dev.addr, None, None, dev.rssi)
+                    self.xsens_db.add_device(dev.addr, None, dev.rssi)
                 print ('\t' + desc + ': <' + val + '>')
         if not dev.scanData:
             print ('\t(no data)')
         print
-        
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -131,7 +129,7 @@ def main():
 
     btle.Debugging = arg.verbose
 
-    scanner = btle.Scanner(arg.hci).withDelegate(ScanPrint(arg))
+    scanner = btle.Scanner(arg.hci).withDelegate(ScannerDatabase(arg))
 
     print (ANSI_RED + "Scanning for devices..." + ANSI_OFF)
     devices = scanner.scan(arg.timeout)

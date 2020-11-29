@@ -21,12 +21,16 @@ class XsensDOTDatabase:
         self._create_tables()
         
 
-    def add_device(self, ble_address, local_name, status, signal_strength):
+    def add_device(self, ble_address, status, signal_strength):
         # Add an Xsens DOT device to the database
         status = "Disconnected"
-        self.cursor.execute("INSERT INTO devices VALUES (?,?,?,?,?)",
-                            ([None, ble_address, local_name, status, signal_strength]))
-        self.conn.commit()
+        local_name = "Xsens DOT"
+        if self._device_already_found(ble_address):
+            logger.logger.debug("Device with address {} already in database.".format(ble_address))
+        else:
+            self.cursor.execute("INSERT INTO devices VALUES (?,?,?,?,?)",
+                               ([None, ble_address, local_name, status, signal_strength]))
+            self.conn.commit()
         
     def _create_tables(self):
         if not self._table_exists("devices"):
@@ -56,4 +60,12 @@ class XsensDOTDatabase:
                                    signal_strength_dbm INTEGER)''')
         except sqlite3.OperationalError as e:
             logger.logger.error(e)
+
+    def _device_already_found(self, ble_address):
+        device_cursor = self.cursor.execute(
+            "SELECT * FROM devices WHERE ble_address = '{}'".format(ble_address))
+        devices = device_cursor.fetchall()
+        if len(devices) == 0:
+            return False
+        return True
 
